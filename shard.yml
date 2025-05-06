@@ -1,0 +1,13 @@
+name: shrimp
+version: 0.1.0
+
+authors:
+  - Daniel Gilchrist <danniieelg@gmail.com>
+
+targets:
+  shrimp:
+    main: src/shrimp.cr
+
+crystal: '>= 1.16.1'
+
+license: MIT
