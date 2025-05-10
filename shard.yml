@@ -11,6 +11,8 @@ targets:
 dependencies:
   sdl:
     github: ysbaddaden/sdl.cr
+  web:
+    github: lbguilherme/crystal-web
 
 crystal: '>= 1.16.1'
 

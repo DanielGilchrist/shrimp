@@ -1,5 +1,8 @@
 require "option_parser"
-require "./shrimp/**"
+require "sdl"
+
+require "./shrimp/interpreter"
+require "./shrimp/display/sdl"
 
 module Shrimp
   extend self
@@ -7,22 +10,27 @@ module Shrimp
   VERSION = "0.1.0"
 
   def main
-    display = {% if flag?(:sdl) %}
-      Display::SDL.new
-    {% else %}
-      raise(NotImplementedError.new("You must pass a compiler flag specifying display implementation!"))
-    {% end %}
+    display = Display::SDL.new
 
     STDIN.puts("Starting interpreter...")
 
     options = parse_options!
 
     interpreter = Interpreter.new(display)
-    interpreter.load_rom(options.rom_path)
+
+    rom_bytes = File.read(options.rom_path, encoding: nil).to_slice
+    interpreter.load_rom(rom_bytes)
 
     STDIN.puts("Successfully loaded #{options.rom_path}")
 
+    main_loop(interpreter)
+
+    STDIN.puts("Exiting...")
+  end
+
+  private def main_loop(interpreter : Interpreter)
     running = true
+
     while running
       while event = ::SDL::Event.poll
         case event
@@ -37,8 +45,6 @@ module Shrimp
 
       interpreter.cycle
     end
-
-    STDIN.puts("Exiting...")
   end
 
   private def parse_options! : Options
