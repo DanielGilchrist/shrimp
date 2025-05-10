@@ -25,15 +25,13 @@ module Shrimp
 
     alias Instruction = Proc(UInt16, Nil)
 
-    @display : Array(Array(UInt8))
-
     @table : Array(Instruction)
     @table0 : Array(Instruction)
     @table8 : Array(Instruction)
     @tableE : Array(Instruction)
     @tableF : Array(Instruction)
 
-    def initialize
+    def initialize(@display : Display)
       @memory = Bytes.new(MEMORY_SIZE, 0)
       @registers = Bytes.new(16, 0)
       @index = 0_u16
@@ -43,7 +41,6 @@ module Shrimp
       @delay_timer = 0_u8
       @sound_timer = 0_u8
       @keypad = Bytes.new(16, 0)
-      @display = Array.new(32) { Array(UInt8).new(64, 0) }
 
       @table0 = [
         clear_screen,
@@ -62,7 +59,13 @@ module Shrimp
         skip_if_register_not_equals_value,
         skip_if_registers_equal,
         load_register_with_value,
-        # ...
+        unimplemented,
+        unimplemented,
+        unimplemented,
+        set_index,
+        unimplemented,
+        unimplemented,
+        draw_sprite,
       ]
 
       load_fonts
@@ -87,6 +90,24 @@ module Shrimp
       if @sound_timer > 0
         @sound_timer -= 1
       end
+
+      @display.render
+    end
+
+    # TODO: Remove this once all instructions are implemented
+    private def unimplemented : Instruction
+      Instruction.new do |opcode|
+        idx = table_index(opcode)
+        raise(NotImplementedError.new("opcode #{pretty_opcode(opcode)} | index: #{idx}"))
+      end
+    end
+
+    private def pretty_opcode(opcode) : String
+      "0x#{opcode.to_s(16).upcase.rjust(4, '0')}"
+    end
+
+    private def table_index(opcode : UInt16)
+      (opcode & 0xF000) >> 12
     end
 
     private def load_fonts
@@ -96,17 +117,16 @@ module Shrimp
     end
 
     private def execute(opcode : UInt16)
-      idx = (opcode & 0xF000) >> 12
+      idx = table_index(opcode)
 
       {% if flag?(:debug) %}
         instruction = @table[idx]?
-        pretty_opcode = "0x#{opcode.to_s(16).upcase.rjust(4, '0')}"
 
         if instruction
-          puts pretty_opcode
+          puts pretty_opcode(opcode)
           instruction.call(opcode)
         else
-          raise(NotImplementedError.new("opcode #{pretty_opcode}"))
+          unimplemented.call(opcode)
         end
       {% else %}
         @table[idx].call(opcode)
@@ -115,7 +135,7 @@ module Shrimp
 
     # 0x00E0: CLS
     private def clear_screen : Instruction
-      Instruction.new { @display.each(&.fill(0)) }
+      Instruction.new { @display.clear }
     end
 
     # 0x00EE: RET
@@ -185,6 +205,42 @@ module Shrimp
         byte = opcode & 0x00FF
 
         @registers[vx] = byte.to_u8
+      end
+    end
+
+    # 0xANNN: LD I, addr
+    private def set_index : Instruction
+      Instruction.new { |opcode| @index = opcode & 0x0FFF }
+    end
+
+    # 0xDXYN: DRW Vx, Vy, nibble
+    private def draw_sprite : Instruction
+      Instruction.new do |opcode|
+        vx = (opcode & 0x0F00) >> 8
+        vy = (opcode & 0x00F0) >> 4
+        height = opcode & 0x000F
+
+        x_pos = @registers[vx] % @display.width
+        y_pos = @registers[vy] % @display.height
+
+        @registers[0xF] = 0
+
+        height.times do |row_index|
+          sprite_byte = @memory[@index + row_index]
+
+          8.times do |column_index|
+            sprite_pixel = sprite_byte & (0x80 >> column_index)
+            next if sprite_pixel == 0
+
+            screen_x = (x_pos + column_index) % @display.width
+            screen_y = (y_pos + row_index) % @display.height
+
+            screen_pixel = @display.get_pixel(screen_x, screen_y)
+            @registers[0xF] |= screen_pixel
+
+            @display.set_pixel(screen_x, screen_y, screen_pixel ^ 1)
+          end
+        end
       end
     end
   end

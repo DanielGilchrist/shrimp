@@ -7,14 +7,38 @@ module Shrimp
   VERSION = "0.1.0"
 
   def main
+    display = {% if flag?(:sdl) %}
+      Display::SDL.new
+    {% else %}
+      raise(NotImplementedError.new("You must pass a compiler flag specifying display implementation!"))
+    {% end %}
+
+    STDIN.puts("Starting interpreter...")
+
     options = parse_options!
 
-    interpreter = Interpreter.new
+    interpreter = Interpreter.new(display)
     interpreter.load_rom(options.rom_path)
 
-    loop do
+    STDIN.puts("Successfully loaded #{options.rom_path}")
+
+    running = true
+    while running
+      while event = ::SDL::Event.poll
+        case event
+        when ::SDL::Event::Quit
+          running = false
+        when ::SDL::Event::Keyboard
+          if event.sym.escape?
+            running = false
+          end
+        end
+      end
+
       interpreter.cycle
     end
+
+    STDIN.puts("Exiting...")
   end
 
   private def parse_options! : Options
@@ -43,7 +67,7 @@ module Shrimp
   end
 
   private def error!(message : String)
-    error!(message) {}
+    error!(message) { }
   end
 
   private def error!(message : String, &)

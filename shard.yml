@@ -8,6 +8,10 @@ targets:
   shrimp:
     main: src/shrimp.cr
 
+dependencies:
+  sdl:
+    github: ysbaddaden/sdl.cr
+
 crystal: '>= 1.16.1'
 
 license: MIT
