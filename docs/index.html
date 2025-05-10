@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shrimp CHIP-8 Interpreter</title>
+  <style>
+    body {
+      background-color: #222;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    canvas {
+      border: 1px solid #444;
+      margin: 20px 0;
+    }
+    select, button {
+      margin: 5px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Shrimp CHIP-8 Interpreter</h1>
+
+  <div>
+    <input type="file" id="rom-file" accept=".ch8">
+    <button id="load-rom">Load ROM</button>
+  </div>
+
+  <div id="canvas-container">
+    <!-- Canvas will be added by Crystal WebAssembly code -->
+  </div>
+
+  <script src="main.js"></script>
+  <script>
+    let animationFrameId = null;
+
+    function runInterpreterLoop() {
+      window.cycle_interpreter();
+      animationFrameId = requestAnimationFrame(runInterpreterLoop);
+    }
+
+    function startInterpreter() {
+      window.init().then(() => {
+        window.init_interpreter = init.init_interpreter;
+        window.cycle_interpreter = init.cycle_interpreter;
+
+        document.getElementById("load-rom").addEventListener("click", async () => {
+          const fileInput = document.getElementById("rom-file");
+          if (!fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a ROM file first");
+            return;
+          }
+
+          try {
+            if (animationFrameId) {
+              cancelAnimationFrame(animationFrameId);
+            }
+
+            const file = fileInput.files[0];
+            const arrayBuffer = await file.arrayBuffer();
+            const romData = new Uint8Array(arrayBuffer);
+            const base64 = btoa(Array.from(romData, byte =>
+              String.fromCharCode(byte)).join(""));
+
+            if (window.init_interpreter(base64)) {
+              runInterpreterLoop();
+            }
+          } catch (error) {
+            console.error("Error loading ROM:", error);
+          }
+        });
+      }).catch(console.error);
+    }
+
+    startInterpreter();
+  </script>
+</body>
+</html>

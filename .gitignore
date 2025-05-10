@@ -1,7 +1,4 @@
-/docs/
 /lib/
 /bin/
 /.shards/
 *.dwarf
-web/main.mjs
-web/main.wasm
