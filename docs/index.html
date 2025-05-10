@@ -49,6 +49,11 @@
         window.cycle_interpreter = init.cycle_interpreter;
 
         document.getElementById("load-rom").addEventListener("click", async () => {
+          const canvas = document.querySelector("canvas")
+          if (canvas != null) {
+            canvas.remove()
+          }
+
           const fileInput = document.getElementById("rom-file");
           if (!fileInput.files || fileInput.files.length === 0) {
             alert("Please select a ROM file first");
