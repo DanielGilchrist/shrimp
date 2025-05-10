@@ -56,4 +56,3 @@ JS.export def cycle_interpreter : Bool
   interpreter.cycle
   true
 end
-

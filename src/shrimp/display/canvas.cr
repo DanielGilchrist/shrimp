@@ -3,7 +3,6 @@ require "../display"
 module Shrimp
   class Display
     class Canvas < Display
-
       @canvas : Web::HTMLCanvasElement
       @ctx : Web::CanvasContext
 
