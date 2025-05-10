@@ -71,8 +71,8 @@ module Shrimp
       load_fonts
     end
 
-    def load_rom(filename : String)
-      File.read(filename, encoding: nil).to_slice.each_with_index do |byte, i|
+    def load_rom(bytes : Bytes)
+      bytes.each_with_index do |byte, i|
         @memory[ROM_START_ADDRESS + i] = byte if (ROM_START_ADDRESS + i) < MEMORY_SIZE
       end
     end

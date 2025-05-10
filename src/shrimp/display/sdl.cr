@@ -1,12 +1,8 @@
-require "sdl"
+require "../display"
 
 module Shrimp
   class Display
     class SDL < Display
-      getter width : Int32
-      getter height : Int32
-      getter scale : Int32
-
       @window : ::SDL::Window
       @renderer : ::SDL::Renderer
       @texture : ::SDL::Texture
@@ -29,23 +25,7 @@ module Shrimp
           @height,
         )
 
-        @buffer = Array.new(@height) { Array.new(@width, 0_u8) }
-      end
-
-      def clear
-        @buffer.each(&.fill(0_u8))
-      end
-
-      def set_pixel(x : Int32, y : Int32, value : UInt8)
-        return if x < 0 || x >= @width || y < 0 || y >= @height
-
-        @buffer[y][x] = value
-      end
-
-      def get_pixel(x : Int32, y : Int32) : UInt8
-        return 0_u8 if x < 0 || x >= @width || y < 0 || y >= @height
-
-        @buffer[y][x]
+        super
       end
 
       def render

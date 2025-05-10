@@ -1,6 +1,14 @@
 version: 2.0
 shards:
+  js:
+    git: https://github.com/lbguilherme/crystal-js.git
+    version: 0.1.0+git.commit.6fb85504c5393d4fdcd7f080dc0bd6bbb5fbd7a3
+
   sdl:
     git: https://github.com/ysbaddaden/sdl.cr.git
     version: 0.1.0+git.commit.a86f867f8c7afbceb8d166ec09185ee14bf0c6d5
+
+  web:
+    git: https://github.com/lbguilherme/crystal-web.git
+    version: 0.1.0+git.commit.6b7b5bb09048234cfb221699a033ef7d5a27cdc8
 
