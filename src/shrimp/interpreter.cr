@@ -59,7 +59,7 @@ module Shrimp
         skip_if_register_not_equals_value,
         skip_if_registers_equal,
         load_register_with_value,
-        unimplemented,
+        add_register_with_value,
         unimplemented,
         unimplemented,
         set_index,
@@ -205,6 +205,16 @@ module Shrimp
         byte = opcode & 0x00FF
 
         @registers[vx] = byte.to_u8
+      end
+    end
+
+    # 0x7XKK: ADD Vx, byte
+    private def add_register_with_value : Instruction
+      Instruction.new do |opcode|
+        vx = (opcode & 0x0F00) >> 8
+        byte = opcode & 0x0FF
+
+        @registers[vx] += byte.to_u8
       end
     end
 
