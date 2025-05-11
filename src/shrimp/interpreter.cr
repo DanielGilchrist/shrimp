@@ -214,7 +214,7 @@ module Shrimp
         vx = (opcode & 0x0F00) >> 8
         byte = opcode & 0x0FF
 
-        @registers[vx] += byte.to_u8
+        @registers[vx] &+= byte.to_u8
       end
     end
 
