@@ -2,10 +2,10 @@
 Name unrelated, just having fun building a CHIP-8 interpreter
 
 ### Native using SDL
-<img width="689" alt="image" src="https://github.com/user-attachments/assets/452659db-cdca-4fe2-9aec-8d42dc5834a5" />
+<img width="823" alt="image" src="https://github.com/user-attachments/assets/9e94e8a8-9a68-42ea-8a4b-0b66185dfc3c" />
 
 ### WASM in the browser
-<img width="1007" alt="image" src="https://github.com/user-attachments/assets/cb7dff34-cb01-464b-8939-eaa332ec5c8c" />
+<img width="906" alt="image" src="https://github.com/user-attachments/assets/a8b1dc34-82ea-4962-b315-78048762e475" />
 
 ### Running locally
 1. [Install SDL2](https://wiki.libsdl.org/SDL2/Installation)
