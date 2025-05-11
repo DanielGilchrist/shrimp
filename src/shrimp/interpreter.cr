@@ -1,3 +1,5 @@
+require "./opcode"
+
 module Shrimp
   class Interpreter
     ROM_START_ADDRESS = 0x200_u16
@@ -23,7 +25,7 @@ module Shrimp
     ]
     FONTSET_START_ADDRESS = 0x50_u16
 
-    alias Instruction = Proc(UInt16, Nil)
+    alias Instruction = Proc(Opcode, Nil)
 
     @table : Array(Instruction)
     @table0 : Array(Instruction)
@@ -52,7 +54,7 @@ module Shrimp
       @tableF = [] of Instruction
 
       @table = [
-        Instruction.new { |opcode| @table0[opcode & 0x000F].call(opcode) },
+        Instruction.new { |opcode| @table0[opcode.lowest_nibble].call(opcode) },
         jump,
         call,
         skip_if_register_equals_value,
@@ -78,7 +80,7 @@ module Shrimp
     end
 
     def cycle
-      opcode = (@memory[@pc].to_u16 << 8) | @memory[@pc + 1].to_u16
+      opcode = Opcode.from(@memory, @pc)
       @pc += 2
 
       execute(opcode)
@@ -97,17 +99,9 @@ module Shrimp
     # TODO: Remove this once all instructions are implemented
     private def unimplemented : Instruction
       Instruction.new do |opcode|
-        idx = table_index(opcode)
-        raise(NotImplementedError.new("opcode #{pretty_opcode(opcode)} | index: #{idx}"))
+        idx = opcode.instruction_type
+        raise(NotImplementedError.new("opcode #{opcode} | index: #{idx}"))
       end
-    end
-
-    private def pretty_opcode(opcode) : String
-      "0x#{opcode.to_s(16).upcase.rjust(4, '0')}"
-    end
-
-    private def table_index(opcode : UInt16)
-      (opcode & 0xF000) >> 12
     end
 
     private def load_fonts
@@ -116,14 +110,14 @@ module Shrimp
       end
     end
 
-    private def execute(opcode : UInt16)
-      idx = table_index(opcode)
+    private def execute(opcode : Opcode)
+      idx = opcode.instruction_type
 
       {% if flag?(:debug) %}
         instruction = @table[idx]?
 
         if instruction
-          puts pretty_opcode(opcode)
+          puts opcode
           instruction.call(opcode)
         else
           unimplemented.call(opcode)
@@ -148,25 +142,23 @@ module Shrimp
 
     # 0x1NNN: JP addr
     private def jump : Instruction
-      Instruction.new { |opcode| @pc = opcode & 0x0FFF }
+      Instruction.new { |opcode| @pc = opcode.address }
     end
 
     # 0x2NNN: CALL addr
     private def call : Instruction
       Instruction.new do |opcode|
-        address = opcode & 0x0FFF
-
         @stack[@sp] = @pc
         @sp += 1
-        @pc = address
+        @pc = opcode.address
       end
     end
 
     # 0x3XKK: SE Vx, byte
     private def skip_if_register_equals_value : Instruction
       Instruction.new do |opcode|
-        vx = (opcode & 0x0F00) >> 8
-        byte = opcode & 0x00FF
+        vx = opcode.vx
+        byte = opcode.immediate_value
 
         if @registers[vx] == byte
           @pc += 2
@@ -177,8 +169,8 @@ module Shrimp
     # 0x4XKK: SNE Vx, byte
     private def skip_if_register_not_equals_value : Instruction
       Instruction.new do |opcode|
-        vx = (opcode & 0x0F00) >> 8
-        byte = opcode & 0x00FF
+        vx = opcode.vx
+        byte = opcode.immediate_value
 
         if @registers[vx] != byte
           @pc += 2
@@ -189,8 +181,8 @@ module Shrimp
     # 0x5XY0: SE Vx, Vy
     private def skip_if_registers_equal : Instruction
       Instruction.new do |opcode|
-        vx = (opcode & 0x0F00) >> 8
-        vy = (opcode & 0x00F0) >> 4
+        vx = opcode.vx
+        vy = opcode.vy
 
         if @registers[vx] == @registers[vy]
           @pc += 2
@@ -201,8 +193,8 @@ module Shrimp
     # 0x6XKK: LD Vx, byte
     private def load_register_with_value : Instruction
       Instruction.new do |opcode|
-        vx = (opcode & 0x0F00) >> 8
-        byte = opcode & 0x00FF
+        vx = opcode.vx
+        byte = opcode.immediate_value
 
         @registers[vx] = byte.to_u8
       end
@@ -211,8 +203,8 @@ module Shrimp
     # 0x7XKK: ADD Vx, byte
     private def add_register_with_value : Instruction
       Instruction.new do |opcode|
-        vx = (opcode & 0x0F00) >> 8
-        byte = opcode & 0x0FF
+        vx = opcode.vx
+        byte = opcode.immediate_value
 
         @registers[vx] &+= byte.to_u8
       end
@@ -220,15 +212,15 @@ module Shrimp
 
     # 0xANNN: LD I, addr
     private def set_index : Instruction
-      Instruction.new { |opcode| @index = opcode & 0x0FFF }
+      Instruction.new { |opcode| @index = opcode.address }
     end
 
     # 0xDXYN: DRW Vx, Vy, nibble
     private def draw_sprite : Instruction
       Instruction.new do |opcode|
-        vx = (opcode & 0x0F00) >> 8
-        vy = (opcode & 0x00F0) >> 4
-        height = opcode & 0x000F
+        vx = opcode.vx
+        vy = opcode.vy
+        height = opcode.lowest_nibble
 
         x_pos = @registers[vx] % @display.width
         y_pos = @registers[vy] % @display.height
