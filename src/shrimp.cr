@@ -30,6 +30,7 @@ module Shrimp
 
   private def main_loop(interpreter : Interpreter)
     running = true
+    unimplemented_instruction = false
 
     while running
       while event = ::SDL::Event.poll
@@ -43,7 +44,12 @@ module Shrimp
         end
       end
 
-      interpreter.cycle
+      begin
+        interpreter.cycle unless unimplemented_instruction
+      rescue error : NotImplementedError
+        unimplemented_instruction = true
+        puts error
+      end
     end
   end
 
