@@ -12,7 +12,7 @@ module Shrimp
   def main
     display = Display::SDL.new
 
-    STDIN.puts("Starting interpreter...")
+    STDOUT.puts("Starting interpreter...")
 
     options = parse_options!
 
@@ -21,11 +21,11 @@ module Shrimp
     rom_bytes = File.read(options.rom_path, encoding: nil).to_slice
     interpreter.load_rom(rom_bytes)
 
-    STDIN.puts("Successfully loaded #{options.rom_path}")
+    STDOUT.puts("Successfully loaded #{options.rom_path}")
 
     main_loop(interpreter)
 
-    STDIN.puts("Exiting...")
+    STDOUT.puts("Exiting...")
   end
 
   private def main_loop(interpreter : Interpreter)
