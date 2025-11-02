@@ -54,5 +54,6 @@ JS.export def cycle_interpreter : Bool
   return false unless interpreter
 
   interpreter.cycle
+  interpreter.render
   true
 end

@@ -29,23 +29,23 @@ module Shrimp
   end
 
   private def main_loop(interpreter : Interpreter)
-    running = true
     unimplemented_instruction = false
 
-    while running
+    loop do
       while event = ::SDL::Event.poll
         case event
         when ::SDL::Event::Quit
-          running = false
+          return
         when ::SDL::Event::Keyboard
           if event.sym.escape?
-            running = false
+            return
           end
         end
       end
 
       begin
         interpreter.cycle unless unimplemented_instruction
+        interpreter.render
       rescue error : NotImplementedError
         unimplemented_instruction = true
         puts error

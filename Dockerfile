@@ -1,4 +1,5 @@
-FROM crystallang/crystal:latest
+ARG CRYSTAL_VERSION=latest
+FROM crystallang/crystal:${CRYSTAL_VERSION}
 
 RUN apt-get update && \
     apt-get install -y git curl && \

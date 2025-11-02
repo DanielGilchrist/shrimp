@@ -114,7 +114,9 @@ module Shrimp
       if @sound_timer > 0
         @sound_timer -= 1
       end
+    end
 
+    def render
       @display.render
     end
 
