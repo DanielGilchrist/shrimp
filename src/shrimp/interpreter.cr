@@ -69,11 +69,11 @@ module Shrimp
       @tableF[0x0A] = unimplemented(subinstruction: true)
       @tableF[0x15] = unimplemented(subinstruction: true)
       @tableF[0x18] = unimplemented(subinstruction: true)
-      @tableF[0x1E] = unimplemented(subinstruction: true)
+      @tableF[0x1E] = add_to_index
       @tableF[0x29] = unimplemented(subinstruction: true)
-      @tableF[0x33] = unimplemented(subinstruction: true)
-      @tableF[0x55] = unimplemented(subinstruction: true)
-      @tableF[0x65] = unimplemented(subinstruction: true)
+      @tableF[0x33] = load_binary_coded_decimal_to_memory
+      @tableF[0x55] = load_to_memory_from_registers
+      @tableF[0x65] = load_to_registers_from_memory
 
       @table = [
         instruction_from(@table0, &.lowest_nibble),
@@ -409,6 +409,49 @@ module Shrimp
 
             @display.set_pixel(screen_x, screen_y, screen_pixel ^ 1)
           end
+        end
+      end
+    end
+
+    # 0xFX1E: ADD I, Vx
+    private def add_to_index : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        @index += @registers[vx]
+      end
+    end
+
+    # 0xFX33: LD B, Vx
+    private def load_binary_coded_decimal_to_memory : Instruction
+      Instruction.new do |opcode|
+        value = @registers[opcode.vx]
+        i = 2
+
+        3.times do
+          value, @memory[@index + i] = value.divmod(10)
+          i -= 1
+        end
+      end
+    end
+
+    # 0xFX55: LD [I], Vx
+    private def load_to_memory_from_registers : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+
+        (0..vx).each do |i|
+          @memory[@index + i] = @registers[i]
+        end
+      end
+    end
+
+    # 0xFX65: LD Vx, [I]
+    private def load_to_registers_from_memory : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+
+        (0..vx).each do |i|
+          @registers[i] = @memory[@index + i]
         end
       end
     end
