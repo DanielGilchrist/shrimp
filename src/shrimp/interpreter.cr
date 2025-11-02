@@ -83,7 +83,7 @@ module Shrimp
         load_register_with_value,
         add_register_with_value,
         instruction_from(@table8, &.lowest_nibble),
-        unimplemented
+        skip_if_registers_not_equal,
         set_index,
         unimplemented,
         unimplemented,
@@ -239,6 +239,18 @@ module Shrimp
         byte = opcode.immediate_value
 
         @registers[vx] &+= byte.to_u8
+      end
+    end
+
+    # 0x9XY0: SNE Vx, Vy
+    private def skip_if_registers_not_equal : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        if @registers[vx] != @registers[vy]
+          @pc += 2
+        end
       end
     end
 
