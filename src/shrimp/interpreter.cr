@@ -4,6 +4,7 @@ module Shrimp
   class Interpreter
     ROM_START_ADDRESS = 0x200_u16
     MEMORY_SIZE       =      4096
+    REGISTER_CAP      = 255_u8 # 8 bits
 
     FONTSET = Bytes[
       0xF0, 0x90, 0x90, 0x90, 0xF0, # 0
@@ -50,15 +51,15 @@ module Shrimp
       @table0[0x0] = clear_screen
       @table0[0xE] = return_from_subroutine
 
-      @table8[0x0] = unimplemented
-      @table8[0x1] = unimplemented
-      @table8[0x2] = unimplemented
-      @table8[0x3] = unimplemented
-      @table8[0x4] = unimplemented
-      @table8[0x5] = unimplemented
-      @table8[0x6] = unimplemented
-      @table8[0x7] = unimplemented
-      @table8[0xE] = unimplemented
+      @table8[0x0] = set_equal
+      @table8[0x1] = bitewise_or
+      @table8[0x2] = bitwise_and
+      @table8[0x3] = bitwise_xor
+      @table8[0x4] = add
+      @table8[0x5] = subtract_vy_from_vx
+      @table8[0x6] = shift_right
+      @table8[0x7] = subtract_vx_from_vy
+      @table8[0xE] = shift_left
 
       @tableE[0x1] = unimplemented
       @tableE[0xE] = unimplemented
@@ -239,6 +240,126 @@ module Shrimp
         byte = opcode.immediate_value
 
         @registers[vx] &+= byte.to_u8
+      end
+    end
+
+    # 0x8XY0: Set Vx, Vy
+    private def set_equal : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        @registers[vx] = @registers[vy]
+      end
+    end
+
+    # 0x8XY1: OR Vx, Vy
+    private def bitewise_or : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        @registers[vx] |= @registers[vy]
+      end
+    end
+
+    # 0x8XY2: AND Vx, Vy
+    private def bitwise_and : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        @registers[vx] &= @registers[vy]
+      end
+    end
+
+    # 0x8XY3: XOR Vx, Vy
+    private def bitwise_xor : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        @registers[vx] ^= @registers[vy]
+      end
+    end
+
+    # 0x8XY4: ADD Vx, Vy
+    private def add : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        result = @registers[vx].to_u16 + @registers[vy].to_u16
+
+        @registers[0xF] = if result > REGISTER_CAP
+          1_u8
+        else
+          0_u8
+        end
+
+        @registers[vx] = (result & 0xFF).to_u8
+      end
+    end
+
+    # 0x8XY5: SUB Vx, Vy
+    private def subtract_vy_from_vx : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        vx_value = @registers[vx]
+        vy_value = @registers[vy]
+
+        if vy > vx
+          @registers[0xF] = 1
+        else
+          @registers[0xF] = 0
+        end
+
+        @registers[vx] = vx_value &- vy_value
+      end
+    end
+
+    # 0x8XY6: SHR Vx, Vy
+    private def shift_right : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        vy_value = @registers[vy]
+        @registers[0xF] = vy_value & 0x1
+        @registers[vx] = vy_value >> 0x1
+      end
+    end
+
+    # 0x8XY7: SUBN Vx, Vy
+    private def subtract_vx_from_vy : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        vx_value = @registers[vx]
+        vy_value = @registers[vy]
+
+        if vx > vy
+          @registers[0xF] = 1
+        else
+          @registers[0xF] = 0
+        end
+
+        @registers[vx] = vy_value &- vx_value
+      end
+    end
+
+    # 0x8XY6: SH: Vx, Vy
+    private def shift_left : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        vy = opcode.vy
+
+        vy_value = @registers[vy]
+        @registers[0xF] = vy_value | 0x1
+        @registers[vx] = vy_value << 0x1
       end
     end
 
