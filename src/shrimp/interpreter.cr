@@ -44,17 +44,37 @@ module Shrimp
       @sound_timer = 0_u8
       @keypad = Bytes.new(16, 0)
 
-      @table0 = [
-        clear_screen,
-        return_from_subroutine,
-      ]
+      @table0, @table8, @tableE = 3.times.map { Array.new(0xE + 1) { no_op } }.to_a
+      @tableF = Array.new(0x65 + 1) { no_op }
 
-      @table8 = [] of Instruction
-      @tableE = [] of Instruction
-      @tableF = [] of Instruction
+      @table0[0x0] = clear_screen
+      @table0[0xE] = return_from_subroutine
+
+      @table8[0x0] = unimplemented
+      @table8[0x1] = unimplemented
+      @table8[0x2] = unimplemented
+      @table8[0x3] = unimplemented
+      @table8[0x4] = unimplemented
+      @table8[0x5] = unimplemented
+      @table8[0x6] = unimplemented
+      @table8[0x7] = unimplemented
+      @table8[0xE] = unimplemented
+
+      @tableE[0x1] = unimplemented
+      @tableE[0xE] = unimplemented
+
+      @tableF[0x07] = unimplemented
+      @tableF[0x0A] = unimplemented
+      @tableF[0x15] = unimplemented
+      @tableF[0x18] = unimplemented
+      @tableF[0x1E] = unimplemented
+      @tableF[0x29] = unimplemented
+      @tableF[0x33] = unimplemented
+      @tableF[0x55] = unimplemented
+      @tableF[0x65] = unimplemented
 
       @table = [
-        Instruction.new { |opcode| @table0[opcode.lowest_nibble].call(opcode) },
+        instruction_from(@table0, &.lowest_nibble),
         jump,
         call,
         skip_if_register_equals_value,
@@ -62,12 +82,14 @@ module Shrimp
         skip_if_registers_equal,
         load_register_with_value,
         add_register_with_value,
-        unimplemented,
-        unimplemented,
+        instruction_from(@table8, &.lowest_nibble),
+        unimplemented
         set_index,
         unimplemented,
         unimplemented,
         draw_sprite,
+        instruction_from(@tableE, &.lowest_nibble),
+        instruction_from(@tableF, &.immediate_value)
       ]
 
       load_fonts
@@ -104,6 +126,10 @@ module Shrimp
       end
     end
 
+    def instruction_from(table : Array(Instruction), &block : Opcode -> UInt16) : Instruction
+      Instruction.new { |opcode| table[block.call(opcode)].call(opcode) }
+    end
+
     private def load_fonts
       FONTSET.each_with_index do |byte, i|
         @memory[FONTSET_START_ADDRESS + i] = byte
@@ -114,10 +140,10 @@ module Shrimp
       idx = opcode.instruction_type
 
       {% if flag?(:debug) %}
+        puts opcode
         instruction = @table[idx]?
 
         if instruction
-          puts opcode
           instruction.call(opcode)
         else
           unimplemented.call(opcode)
@@ -125,6 +151,10 @@ module Shrimp
       {% else %}
         @table[idx].call(opcode)
       {% end %}
+    end
+
+    private def no_op : Instruction
+      Instruction.new {}
     end
 
     # 0x00E0: CLS
