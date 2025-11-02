@@ -61,18 +61,19 @@ module Shrimp
       @table8[0x7] = subtract_vx_from_vy
       @table8[0xE] = shift_left
 
-      @tableE[0x1] = unimplemented
-      @tableE[0xE] = unimplemented
+      @tableE[0x1] = unimplemented(subinstruction: true)
+      @tableE[0xE] = unimplemented(subinstruction: true)
 
-      @tableF[0x07] = unimplemented
-      @tableF[0x0A] = unimplemented
-      @tableF[0x15] = unimplemented
-      @tableF[0x18] = unimplemented
-      @tableF[0x1E] = unimplemented
-      @tableF[0x29] = unimplemented
-      @tableF[0x33] = unimplemented
-      @tableF[0x55] = unimplemented
-      @tableF[0x65] = unimplemented
+      @tableF[0x05] = unimplemented(subinstruction: true)
+      @tableF[0x07] = unimplemented(subinstruction: true)
+      @tableF[0x0A] = unimplemented(subinstruction: true)
+      @tableF[0x15] = unimplemented(subinstruction: true)
+      @tableF[0x18] = unimplemented(subinstruction: true)
+      @tableF[0x1E] = unimplemented(subinstruction: true)
+      @tableF[0x29] = unimplemented(subinstruction: true)
+      @tableF[0x33] = unimplemented(subinstruction: true)
+      @tableF[0x55] = unimplemented(subinstruction: true)
+      @tableF[0x65] = unimplemented(subinstruction: true)
 
       @table = [
         instruction_from(@table0, &.lowest_nibble),
@@ -122,9 +123,10 @@ module Shrimp
     end
 
     # TODO: Remove this once all instructions are implemented
-    private def unimplemented : Instruction
+    private def unimplemented(subinstruction : Bool = false) : Instruction
       Instruction.new do |opcode|
         idx = opcode.instruction_type
+        idx = "#{idx} -> #{opcode.lowest_nibble}" if subinstruction
         raise(NotImplementedError.new("opcode #{opcode} | index: #{idx}"))
       end
     end
