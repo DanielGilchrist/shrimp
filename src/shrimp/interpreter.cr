@@ -65,10 +65,10 @@ module Shrimp
       @tableE[0xE] = unimplemented(subinstruction: true)
 
       @tableF[0x05] = unimplemented(subinstruction: true)
-      @tableF[0x07] = unimplemented(subinstruction: true)
+      @tableF[0x07] = load_register_with_delay_timer
       @tableF[0x0A] = unimplemented(subinstruction: true)
-      @tableF[0x15] = unimplemented(subinstruction: true)
-      @tableF[0x18] = unimplemented(subinstruction: true)
+      @tableF[0x15] = load_delay_timer
+      @tableF[0x18] = load_sound_timer
       @tableF[0x1E] = add_to_index
       @tableF[0x29] = unimplemented(subinstruction: true)
       @tableF[0x33] = load_binary_coded_decimal_to_memory
@@ -410,6 +410,30 @@ module Shrimp
             @display.set_pixel(screen_x, screen_y, screen_pixel ^ 1)
           end
         end
+      end
+    end
+
+    # 0xFX07: LD Vx, DT
+    private def load_register_with_delay_timer : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        @registers[vx] = @delay_timer
+      end
+    end
+
+    # 0xFX15: LD DT, Vx
+    private def load_delay_timer : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        @delay_timer = @registers[vx]
+      end
+    end
+
+    # 0xFX18: LD ST, Vx
+    private def load_sound_timer : Instruction
+      Instruction.new do |opcode|
+        vx = opcode.vx
+        @sound_timer = @registers[vx]
       end
     end
 
