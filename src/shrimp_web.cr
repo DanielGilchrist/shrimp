@@ -29,12 +29,12 @@ end
 module GlobalState
   @@interpreter : Shrimp::Interpreter? = nil
 
-  def self.interpreter
-    @@interpreter
+  def self.interpreter : Shrimp::Interpreter
+    @@interpreter.not_nil!
   end
 
-  def self.interpreter=(value)
-    @@interpreter = value
+  def self.interpreter=(interpreter : Shrimp::Interpreter)
+    @@interpreter = interpreter
   end
 end
 
@@ -49,11 +49,8 @@ JS.export def init_interpreter(rom_data : String) : Bool
   true
 end
 
-JS.export def cycle_interpreter : Bool
+JS.export def cycle_interpreter
   interpreter = GlobalState.interpreter
-  return false unless interpreter
-
   interpreter.cycle
   interpreter.render
-  true
 end

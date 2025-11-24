@@ -54,9 +54,9 @@ async function init() {
  
   __heap[arg1] = (arg2 === 1);
  },
-      _js5(arg1, arg2) { // JSExportHelpers.__export_1_set_result 
+      _js5(arg1) { // JSExportHelpers.__export_1_set_result 
  
-  __heap[arg1] = (arg2 === 1);
+  __heap[arg1] = null;
  },
       _js59() { // Web.get_window 
  return __make_ref((() => { 
