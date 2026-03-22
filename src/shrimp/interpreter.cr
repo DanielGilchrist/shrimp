@@ -6,6 +6,8 @@ module Shrimp
     MEMORY_SIZE       =      4096
     REGISTER_CAP      = 255_u8 # 8 bits
 
+    CYCLES_PER_FRAME = 10
+
     FONTSET = Bytes[
       0xF0, 0x90, 0x90, 0x90, 0xF0, # 0
       0x20, 0x60, 0x20, 0x20, 0x70, # 1
@@ -103,12 +105,20 @@ module Shrimp
       end
     end
 
+    def step
+      CYCLES_PER_FRAME.times { cycle }
+      tick_timers
+      render
+    end
+
     def cycle
       opcode = Opcode.from(@memory, @pc)
       @pc += 2
 
       execute(opcode)
+    end
 
+    def tick_timers
       if @delay_timer > 0
         @delay_timer -= 1
       end

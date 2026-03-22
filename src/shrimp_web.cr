@@ -49,8 +49,6 @@ JS.export def init_interpreter(rom_data : String) : Bool
   true
 end
 
-JS.export def cycle_interpreter
-  interpreter = GlobalState.interpreter
-  interpreter.cycle
-  interpreter.render
+JS.export def step_interpreter
+  GlobalState.interpreter.step
 end

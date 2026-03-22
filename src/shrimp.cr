@@ -44,8 +44,7 @@ module Shrimp
       end
 
       begin
-        interpreter.cycle unless unimplemented_instruction
-        interpreter.render
+        interpreter.step unless unimplemented_instruction
       rescue error : NotImplementedError
         unimplemented_instruction = true
         puts error

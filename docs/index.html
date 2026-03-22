@@ -46,8 +46,8 @@
 
     window.init().then(() => {
       const initInterpreter = init.init_interpreter;
-      const cycleInterpreter = init.cycle_interpreter;
-      let interpreterInterval = null;
+      const stepInterpreter = init.step_interpreter;
+      let animationFrameId = null;
 
       document.getElementById("load-rom").addEventListener("click", async () => {
         const fileInput = document.getElementById("rom-file");
@@ -61,10 +61,14 @@
         const encodedROM = await base64EncodeFile(file);
 
         clearCanvasIfExists();
-        if (interpreterInterval != null) window.clearInterval(interpreterInterval);
+        if (animationFrameId != null) cancelAnimationFrame(animationFrameId);
 
         if (initInterpreter(encodedROM)) {
-          interpreterInterval = window.setInterval(cycleInterpreter, 1);
+          function frame() {
+            stepInterpreter();
+            animationFrameId = requestAnimationFrame(frame);
+          }
+          animationFrameId = requestAnimationFrame(frame);
         }
       });
     }).catch(console.error);

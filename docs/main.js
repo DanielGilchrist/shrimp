@@ -236,7 +236,7 @@ init.init_interpreter = (...args) => {
   return result;
 };
 
-init.cycle_interpreter = (...args) => {
+init.step_interpreter = (...args) => {
   const slot = __make_ref(args);
   __exports.__export_1(slot);
   const result = __heap[slot];
