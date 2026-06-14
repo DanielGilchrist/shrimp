@@ -1,8 +1,9 @@
-require "option_parser"
+require "kebab"
 require "sdl"
 
 require "./shrimp/interpreter"
 require "./shrimp/display/sdl"
+require "./shrimp/commands/main"
 
 module Shrimp
   extend self
@@ -10,84 +11,12 @@ module Shrimp
   VERSION = "0.1.0"
 
   def main
-    display = Display::SDL.new
-
-    STDOUT.puts("Starting interpreter...")
-
-    options = parse_options!
-
-    interpreter = Interpreter.new(display)
-
-    rom_bytes = File.read(options.rom_path, encoding: nil).to_slice
-    interpreter.load_rom(rom_bytes)
-
-    STDOUT.puts("Successfully loaded #{options.rom_path}")
-
-    main_loop(interpreter)
-
-    STDOUT.puts("Exiting...")
-  end
-
-  private def main_loop(interpreter : Interpreter)
-    unimplemented_instruction = false
-
-    loop do
-      while event = ::SDL::Event.poll
-        case event
-        when ::SDL::Event::Quit
-          return
-        when ::SDL::Event::Keyboard
-          if event.sym.escape?
-            return
-          end
-        end
-      end
-
-      begin
-        interpreter.step unless unimplemented_instruction
-      rescue error : NotImplementedError
-        unimplemented_instruction = true
-        puts error
-      end
+    case result = Commands::Main.parse(ARGV)
+    in Commands::Main then result.run
+    in Kebab::Help    then puts result
+    in Kebab::Errors  then STDERR.puts(result); exit(1)
     end
   end
-
-  private def parse_options! : Options
-    rom_path = ""
-
-    OptionParser.parse do |parser|
-      parser.banner = "Usage: shrimp [arguments]"
-      parser.on("-r PATH", "--rom=PATH", "Specifies the path to a ROM") { |path| rom_path = path }
-      parser.on("-h", "--help", "Show this help") do
-        puts parser
-        exit
-      end
-
-      parser.invalid_option do |flag|
-        error!("ERROR: #{flag} is not a valid option.") do
-          STDERR.puts parser
-        end
-      end
-    end
-
-    if rom_path.blank?
-      error!("--rom must be provided!")
-    end
-
-    Options.new(rom_path)
-  end
-
-  private def error!(message : String)
-    error!(message) { }
-  end
-
-  private def error!(message : String, &)
-    STDERR.puts(message)
-    yield
-    exit(1)
-  end
-
-  private record Options, rom_path : String
 end
 
 Shrimp.main

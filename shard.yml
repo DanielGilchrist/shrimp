@@ -9,6 +9,9 @@ targets:
     main: src/shrimp.cr
 
 dependencies:
+  kebab:
+    github: DanielGilchrist/kebab
+    branch: main
   sdl:
     github: ysbaddaden/sdl.cr
   web:

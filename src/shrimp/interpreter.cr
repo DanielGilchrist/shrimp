@@ -4,7 +4,7 @@ module Shrimp
   class Interpreter
     ROM_START_ADDRESS = 0x200_u16
     MEMORY_SIZE       =      4096
-    REGISTER_CAP      = 255_u8 # 8 bits
+    REGISTER_CAP      =    255_u8 # 8 bits
 
     CYCLES_PER_FRAME = 10
 
@@ -93,7 +93,7 @@ module Shrimp
         unimplemented,
         draw_sprite,
         instruction_from(@tableE, &.lowest_nibble),
-        instruction_from(@tableF, &.immediate_value)
+        instruction_from(@tableF, &.immediate_value),
       ]
 
       load_fonts
@@ -169,7 +169,7 @@ module Shrimp
     end
 
     private def no_op : Instruction
-      Instruction.new {}
+      Instruction.new { }
     end
 
     # 0x00E0: CLS
@@ -303,11 +303,12 @@ module Shrimp
 
         result = @registers[vx].to_u16 + @registers[vy].to_u16
 
-        @registers[0xF] = if result > REGISTER_CAP
-          1_u8
-        else
-          0_u8
-        end
+        @registers[0xF] =
+          if result > REGISTER_CAP
+            1_u8
+          else
+            0_u8
+          end
 
         @registers[vx] = (result & 0xFF).to_u8
       end
