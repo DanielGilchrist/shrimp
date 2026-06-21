@@ -155,7 +155,7 @@ module Shrimp
       idx = opcode.instruction_type
 
       {% if flag?(:debug) %}
-        puts opcode
+        STDOUT.puts opcode
         instruction = @table[idx]?
 
         if instruction

@@ -6,7 +6,7 @@ shards:
 
   kebab:
     git: https://github.com/danielgilchrist/kebab.git
-    version: 0.1.0+git.commit.4e5b3559b52bb30abcf4ded97a47d888743f6794
+    version: 0.1.0+git.commit.888a358962dacbdf5677f4d39b6608e732a67f6d
 
   sdl:
     git: https://github.com/ysbaddaden/sdl.cr.git
