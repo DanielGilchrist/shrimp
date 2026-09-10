@@ -6,7 +6,7 @@ module Shrimp
       @canvas : Web::HTMLCanvasElement
       @ctx : Web::CanvasContext
 
-      def initialize(@width = 64, @height = 32, @scale = 10)
+      def initialize(@width : Int32 = 64, @height : Int32 = 32, @scale : Int32 = 10) : Nil
         document = Web.window.document
 
         @canvas = document.create_element("canvas")
@@ -21,7 +21,7 @@ module Shrimp
         super
       end
 
-      def render
+      def render : Nil
         @ctx.fill_style = "black"
         @ctx.fill_rect(0, 0, @width * @scale, @height * @scale)
 

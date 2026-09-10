@@ -17,6 +17,10 @@ dependencies:
   web:
     github: lbguilherme/crystal-web
 
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+
 crystal: '>= 1.16.1'
 
 license: MIT

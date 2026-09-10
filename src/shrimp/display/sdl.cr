@@ -9,7 +9,7 @@ module Shrimp
       @buffer : Array(Array(UInt8))
       @pixels_data : Array(UInt32)
 
-      def initialize(@width = 64, @height = 32, @scale = 10)
+      def initialize(@width : Int32 = 64, @height : Int32 = 32, @scale : Int32 = 10) : Nil
         ::SDL.init(::SDL::Init::VIDEO)
 
         @window = ::SDL::Window.new(
@@ -31,14 +31,14 @@ module Shrimp
         super
       end
 
-      def render
+      def render : Nil
         @height.times do |y|
           @width.times do |x|
             @pixels_data[y * @width + x] = @buffer[y][x] == 0 ? 0x000000FF_u32 : 0xFFFFFFFF_u32
           end
         end
 
-        @texture.lock do |buffer, pitch|
+        @texture.lock do |buffer, _pitch|
           @pixels_data.each_with_index do |pixel, i|
             buffer[i] = pixel
           end
@@ -56,7 +56,7 @@ module Shrimp
         @renderer.present
       end
 
-      def finalize
+      def finalize : Nil
         ::SDL.quit
       end
     end

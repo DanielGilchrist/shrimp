@@ -1,5 +1,9 @@
 version: 2.0
 shards:
+  ameba:
+    git: https://github.com/crystal-ameba/ameba.git
+    version: 1.7.0
+
   js:
     git: https://github.com/lbguilherme/crystal-js.git
     version: 0.1.0+git.commit.6fb85504c5393d4fdcd7f080dc0bd6bbb5fbd7a3

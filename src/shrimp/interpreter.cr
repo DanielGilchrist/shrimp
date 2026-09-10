@@ -33,10 +33,10 @@ module Shrimp
     @table : Array(Instruction)
     @table0 : Array(Instruction)
     @table8 : Array(Instruction)
-    @tableE : Array(Instruction)
-    @tableF : Array(Instruction)
+    @table_e : Array(Instruction)
+    @table_f : Array(Instruction)
 
-    def initialize(@display : Display)
+    def initialize(@display : Display) : Nil
       @memory = Bytes.new(MEMORY_SIZE, 0)
       @registers = Bytes.new(16, 0)
       @index = 0_u16
@@ -47,8 +47,8 @@ module Shrimp
       @sound_timer = 0_u8
       @keypad = Bytes.new(16, 0)
 
-      @table0, @table8, @tableE = 3.times.map { Array.new(0xE + 1) { no_op } }.to_a
-      @tableF = Array.new(0x65 + 1) { no_op }
+      @table0, @table8, @table_e = Array.new(3) { Array.new(0xE + 1) { no_op } }
+      @table_f = Array.new(0x65 + 1) { no_op }
 
       @table0[0x0] = clear_screen
       @table0[0xE] = return_from_subroutine
@@ -63,19 +63,19 @@ module Shrimp
       @table8[0x7] = subtract_vx_from_vy
       @table8[0xE] = shift_left
 
-      @tableE[0x1] = unimplemented(subinstruction: true)
-      @tableE[0xE] = unimplemented(subinstruction: true)
+      @table_e[0x1] = unimplemented(subinstruction: true)
+      @table_e[0xE] = unimplemented(subinstruction: true)
 
-      @tableF[0x05] = unimplemented(subinstruction: true)
-      @tableF[0x07] = load_register_with_delay_timer
-      @tableF[0x0A] = unimplemented(subinstruction: true)
-      @tableF[0x15] = load_delay_timer
-      @tableF[0x18] = load_sound_timer
-      @tableF[0x1E] = add_to_index
-      @tableF[0x29] = unimplemented(subinstruction: true)
-      @tableF[0x33] = load_binary_coded_decimal_to_memory
-      @tableF[0x55] = load_to_memory_from_registers
-      @tableF[0x65] = load_to_registers_from_memory
+      @table_f[0x05] = unimplemented(subinstruction: true)
+      @table_f[0x07] = load_register_with_delay_timer
+      @table_f[0x0A] = unimplemented(subinstruction: true)
+      @table_f[0x15] = load_delay_timer
+      @table_f[0x18] = load_sound_timer
+      @table_f[0x1E] = add_to_index
+      @table_f[0x29] = unimplemented(subinstruction: true)
+      @table_f[0x33] = load_binary_coded_decimal_to_memory
+      @table_f[0x55] = load_to_memory_from_registers
+      @table_f[0x65] = load_to_registers_from_memory
 
       @table = [
         instruction_from(@table0, &.lowest_nibble),
@@ -92,33 +92,33 @@ module Shrimp
         unimplemented,
         unimplemented,
         draw_sprite,
-        instruction_from(@tableE, &.lowest_nibble),
-        instruction_from(@tableF, &.immediate_value),
+        instruction_from(@table_e, &.lowest_nibble),
+        instruction_from(@table_f, &.immediate_value),
       ]
 
       load_fonts
     end
 
-    def load_rom(bytes : Bytes)
+    def load_rom(bytes : Bytes) : Nil
       bytes.each_with_index do |byte, i|
         @memory[ROM_START_ADDRESS + i] = byte if (ROM_START_ADDRESS + i) < MEMORY_SIZE
       end
     end
 
-    def step
+    def step : Nil
       CYCLES_PER_FRAME.times { cycle }
       tick_timers
       render
     end
 
-    def cycle
+    def cycle : Nil
       opcode = Opcode.from(@memory, @pc)
       @pc += 2
 
       execute(opcode)
     end
 
-    def tick_timers
+    def tick_timers : Nil
       if @delay_timer > 0
         @delay_timer -= 1
       end
@@ -128,7 +128,7 @@ module Shrimp
       end
     end
 
-    def render
+    def render : Nil
       @display.render
     end
 
@@ -145,13 +145,13 @@ module Shrimp
       Instruction.new { |opcode| table[block.call(opcode)].call(opcode) }
     end
 
-    private def load_fonts
+    private def load_fonts : Nil
       FONTSET.each_with_index do |byte, i|
         @memory[FONTSET_START_ADDRESS + i] = byte
       end
     end
 
-    private def execute(opcode : Opcode)
+    private def execute(opcode : Opcode) : Nil
       idx = opcode.instruction_type
 
       {% if flag?(:debug) %}

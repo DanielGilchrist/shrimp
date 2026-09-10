@@ -1,0 +1,23 @@
+Typing/MethodParameterTypeRestriction:
+  Enabled: true
+  DefaultValue: true
+  BlockParameters: true
+  PrivateMethods: true
+  ProtectedMethods: true
+  NodocMethods: true
+
+Typing/MethodReturnTypeRestriction:
+  Enabled: true
+  PrivateMethods: true
+  ProtectedMethods: true
+  NodocMethods: true
+
+Typing/ProcLiteralReturnTypeRestriction:
+  Enabled: true
+
+Typing/MacroCallArgumentTypeRestriction:
+  Enabled: true
+
+Naming/VariableNames:
+  Excluded:
+    - src/web_bindings.cr

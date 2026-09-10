@@ -10,7 +10,7 @@ module Shrimp
 
   VERSION = "0.1.0"
 
-  def main
+  def main : Nil
     case cli = CLI.parse(ARGV)
     in CLI
       run(cli)
@@ -38,7 +38,7 @@ module Shrimp
     STDOUT.puts "Exiting..."
   end
 
-  private def main_loop(interpreter : Interpreter)
+  private def main_loop(interpreter : Interpreter) : Nil
     unimplemented_instruction = false
 
     loop do

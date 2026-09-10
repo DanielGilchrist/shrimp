@@ -4,7 +4,7 @@ module Shrimp
       new((bytes[index].to_u16 << 8) | bytes[index + 1].to_u16)
     end
 
-    def initialize(@opcode : UInt16)
+    def initialize(@opcode : UInt16) : Nil
     end
 
     def address : UInt16
@@ -31,7 +31,7 @@ module Shrimp
       (@opcode & 0x00F0) >> 4
     end
 
-    def to_s(io)
+    def to_s(io : IO) : Nil
       io << "0x#{@opcode.to_s(16).upcase.rjust(4, '0')}"
     end
   end
