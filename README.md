@@ -10,7 +10,7 @@ Name unrelated, just having fun building a CHIP-8 interpreter
 ### Running locally
 1. [Install SDL2](https://wiki.libsdl.org/SDL2/Installation)
 2. `shards install`
-3. `crystal run src/shrimp.cr --release -- --rom="/path/to/rom"`
+3. `crystal run src/main.cr --release -- --rom="/path/to/rom"`
 
 #### WASM
 The interpreter can also be compiled to web assembly and run in the browser. This can be viewed at https://danielgilchrist.github.io/shrimp.

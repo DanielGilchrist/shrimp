@@ -1,0 +1,3 @@
+require "./shrimp"
+
+Shrimp.main

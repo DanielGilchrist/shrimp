@@ -62,5 +62,3 @@ module Shrimp
     end
   end
 end
-
-Shrimp.main
