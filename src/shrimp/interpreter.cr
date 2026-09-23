@@ -154,8 +154,8 @@ module Shrimp
     private def execute(opcode : Opcode) : Nil
       idx = opcode.instruction_type
 
-      {% if flag?(:debug) %}
-        STDOUT.puts opcode
+      {% if flag?(:trace) %}
+        @display.log(opcode.to_s)
         instruction = @table[idx]?
 
         if instruction

@@ -56,6 +56,19 @@ module Shrimp
         @renderer.present
       end
 
+      def poll_events : Bool
+        while event = ::SDL::Event.poll
+          case event
+          when ::SDL::Event::Quit
+            return false
+          when ::SDL::Event::Keyboard
+            return false if event.sym.escape?
+          end
+        end
+
+        true
+      end
+
       def finalize : Nil
         ::SDL.quit
       end

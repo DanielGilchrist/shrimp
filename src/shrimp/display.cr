@@ -1,6 +1,7 @@
 module Shrimp
   abstract class Display
     abstract def render : Nil
+    abstract def poll_events : Bool
     abstract def width : Int32
     abstract def height : Int32
 
@@ -28,6 +29,10 @@ module Shrimp
 
     def clear : Nil
       @buffer.each(&.fill(0_u8))
+    end
+
+    def log(message : String) : Nil
+      STDERR.puts message
     end
   end
 end
