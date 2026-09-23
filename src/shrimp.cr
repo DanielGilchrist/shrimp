@@ -8,7 +8,8 @@ require "./shrimp/cli"
 module Shrimp
   extend self
 
-  VERSION = "0.1.0"
+  VERSION        = "0.1.0"
+  FRAME_DURATION = Time::Span.new(nanoseconds: 1_000_000_000 // 60)
 
   def main : Nil
     case cli = CLI.parse(ARGV)
@@ -42,6 +43,8 @@ module Shrimp
     unimplemented_instruction = false
 
     loop do
+      frame_start = Time.instant
+
       while event = ::SDL::Event.poll
         case event
         when ::SDL::Event::Quit
@@ -59,6 +62,9 @@ module Shrimp
         unimplemented_instruction = true
         STDERR.puts error
       end
+
+      elapsed = Time.instant - frame_start
+      sleep(FRAME_DURATION - elapsed) if elapsed < FRAME_DURATION
     end
   end
 end
