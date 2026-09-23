@@ -1,4 +1,5 @@
 require "../display"
+require "../terminal"
 
 module Shrimp
   class Display
@@ -14,23 +15,23 @@ module Shrimp
       KEY_CTRL_C = 0x03_u8
       KEY_QUIT   = 'q'.ord.to_u8
 
-      getter required_size : Size
+      getter required_size : Terminal::Size
 
       @keys : Channel(UInt8)
       @log : Deque(String)
-      @terminal_size : Size?
+      @terminal_size : Terminal::Size?
 
       def initialize(
         @input : IO = STDIN,
         @output : IO = STDOUT,
-        @terminal_size : Size? = Terminal.size(STDOUT),
+        @terminal_size : Terminal::Size? = Terminal.size(STDOUT),
         @width : Int32 = 64,
         @height : Int32 = 32,
         @scale : Int32 = 1,
       ) : Nil
         @keys = Channel(UInt8).new(64)
         @log = Deque(String).new(LOG_LINES)
-        @required_size = Size.new(@width, @height // 2)
+        @required_size = Terminal::Size.new(@width, @height // 2)
 
         Terminal.enter(@input, @output)
         at_exit { Terminal.leave(@input, @output) }
@@ -72,7 +73,7 @@ module Shrimp
         mark_dirty
       end
 
-      def resize(@terminal_size : Size?) : Nil
+      def resize(@terminal_size : Terminal::Size?) : Nil
         @output.print CLEAR_SCREEN
         mark_dirty
       end
@@ -108,7 +109,7 @@ module Shrimp
         count > 0 ? @log.to_a.last(count) : [] of String
       end
 
-      private def render_too_small(io : IO, size : Size) : Nil
+      private def render_too_small(io : IO, size : Terminal::Size) : Nil
         io << CLEAR_LINE << "Terminal is " << size << ", at least " << @required_size << " is required"
       end
 
@@ -124,6 +125,3 @@ module Shrimp
     end
   end
 end
-
-require "./tui/size"
-require "./tui/terminal"

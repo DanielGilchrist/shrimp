@@ -1,7 +1,7 @@
 require "../../spec_helper"
 require "../../../src/shrimp/display/tui"
 
-private def tui_for(input : String = "", size : Shrimp::Display::TUI::Size? = nil) : {Shrimp::Display::TUI, IO::Memory}
+private def tui_for(input : String = "", size : Shrimp::Terminal::Size? = nil) : {Shrimp::Display::TUI, IO::Memory}
   output = IO::Memory.new
   tui = Shrimp::Display::TUI.new(IO::Memory.new(input), output, size)
   output.clear
@@ -27,11 +27,11 @@ describe Shrimp::Display::TUI do
     end
 
     it "renders again after a resize" do
-      tui, output = tui_for(size: Shrimp::Display::TUI::Size.new(64, 16))
+      tui, output = tui_for(size: Shrimp::Terminal::Size.new(64, 16))
       tui.present
       output.clear
 
-      tui.resize(Shrimp::Display::TUI::Size.new(40, 10))
+      tui.resize(Shrimp::Terminal::Size.new(40, 10))
       tui.present
 
       output.to_s.should contain("Terminal is 40x10")
@@ -94,7 +94,7 @@ describe Shrimp::Display::TUI do
     end
 
     it "shrinks the log panel to the rows available" do
-      tui, output = tui_for(size: Shrimp::Display::TUI::Size.new(64, 19))
+      tui, output = tui_for(size: Shrimp::Terminal::Size.new(64, 19))
       5.times { |i| tui.log("line #{i}") }
 
       tui.render
@@ -107,7 +107,7 @@ describe Shrimp::Display::TUI do
     end
 
     it "omits the log panel when only the display fits" do
-      tui, output = tui_for(size: Shrimp::Display::TUI::Size.new(64, 16))
+      tui, output = tui_for(size: Shrimp::Terminal::Size.new(64, 16))
       tui.log("hidden")
 
       tui.render
@@ -117,7 +117,7 @@ describe Shrimp::Display::TUI do
     end
 
     it "renders a message instead of the display when the terminal is too small" do
-      tui, output = tui_for(size: Shrimp::Display::TUI::Size.new(64, 15))
+      tui, output = tui_for(size: Shrimp::Terminal::Size.new(64, 15))
 
       tui.render
 
@@ -125,8 +125,8 @@ describe Shrimp::Display::TUI do
     end
 
     it "renders the display again once the terminal grows" do
-      tui, output = tui_for(size: Shrimp::Display::TUI::Size.new(40, 10))
-      tui.resize(Shrimp::Display::TUI::Size.new(64, 16))
+      tui, output = tui_for(size: Shrimp::Terminal::Size.new(40, 10))
+      tui.resize(Shrimp::Terminal::Size.new(64, 16))
       output.clear
 
       tui.render
