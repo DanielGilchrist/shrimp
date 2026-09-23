@@ -69,10 +69,12 @@ module Shrimp
       def log(message : String) : Nil
         @log.shift if @log.size == LOG_LINES
         @log.push(message)
+        mark_dirty
       end
 
       def resize(@terminal_size : Size?) : Nil
         @output.print CLEAR_SCREEN
+        mark_dirty
       end
 
       private def watch_for_resize : Nil

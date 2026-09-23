@@ -129,7 +129,7 @@ module Shrimp
     end
 
     def render : Nil
-      @display.render
+      @display.present
     end
 
     # TODO: Remove this once all instructions are implemented

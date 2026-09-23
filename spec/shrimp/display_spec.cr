@@ -11,6 +11,47 @@ describe Shrimp::Display do
     end
   end
 
+  describe "#present" do
+    it "renders a fresh display once" do
+      display = TestDisplay.new
+
+      display.present
+      display.present
+
+      display.render_count.should eq(1)
+    end
+
+    it "renders again after a pixel changes" do
+      display = TestDisplay.new
+      display.present
+
+      display.set_pixel(1, 1, 1_u8)
+      display.present
+
+      display.render_count.should eq(2)
+    end
+
+    it "skips rendering when a pixel is set to its current value" do
+      display = TestDisplay.new
+      display.present
+
+      display.set_pixel(1, 1, 0_u8)
+      display.present
+
+      display.render_count.should eq(1)
+    end
+
+    it "renders again after clearing" do
+      display = TestDisplay.new
+      display.present
+
+      display.clear
+      display.present
+
+      display.render_count.should eq(2)
+    end
+  end
+
   describe "#set_pixel" do
     it "stores the value at the given coordinates" do
       display = TestDisplay.new

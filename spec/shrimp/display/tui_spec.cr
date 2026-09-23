@@ -14,6 +14,30 @@ private def frame_rows(output : IO::Memory) : Array(String)
 end
 
 describe Shrimp::Display::TUI do
+  describe "#present" do
+    it "renders again after a log message" do
+      tui, output = tui_for
+      tui.present
+      output.clear
+
+      tui.log("hello")
+      tui.present
+
+      output.to_s.should contain("hello")
+    end
+
+    it "renders again after a resize" do
+      tui, output = tui_for(size: Shrimp::Display::TUI::Size.new(64, 16))
+      tui.present
+      output.clear
+
+      tui.resize(Shrimp::Display::TUI::Size.new(40, 10))
+      tui.present
+
+      output.to_s.should contain("Terminal is 40x10")
+    end
+  end
+
   describe "#render" do
     it "renders two pixel rows per line using half blocks" do
       tui, output = tui_for
