@@ -5,5 +5,8 @@ module Shrimp
 
     @[Kebab::Option(short: 'r', description: "Path to a ROM file")]
     getter rom : String
+
+    @[Kebab::Option(short: 't', description: "Log every executed opcode")]
+    getter? trace : Bool = false
   end
 end

@@ -7,6 +7,7 @@ require "./shrimp/display/canvas"
 module GlobalState
   @@interpreter : Shrimp::Interpreter? = nil
   @@keypad : Shrimp::Keypad? = nil
+  @@trace = false
 
   KEYS = {
     "1" => Shrimp::Key::One,
@@ -39,9 +40,15 @@ module GlobalState
     KEYS[raw_key]?
   end
 
+  def self.trace=(enabled : Bool) : Nil
+    @@trace = enabled
+    @@interpreter.try(&.trace=(enabled))
+  end
+
   def self.load_rom(rom_data : String) : Nil
     keypad = Shrimp::Keypad.new
     interpreter = Shrimp::Interpreter.new(Shrimp::Display::Canvas.new, keypad)
+    interpreter.trace = @@trace
     interpreter.load_rom(Base64.decode(rom_data))
 
     @@interpreter = interpreter
@@ -75,3 +82,6 @@ JS.export def key_up(raw_key : String) : Nil
   end
 end
 
+JS.export def set_trace(enabled : Bool) : Nil
+  GlobalState.trace = enabled
+end

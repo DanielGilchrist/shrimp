@@ -1,93 +1,546 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Shrimp CHIP-8 Interpreter</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shrimp CHIP-8</title>
   <style>
-    body {
-      background-color: #222;
-      color: #fff;
-      font-family: sans-serif;
+    :root {
+      --bg: #0a1420;
+      --panel: #10203a;
+      --panel-edge: #1d3354;
+      --text: #e8eef7;
+      --muted: #7f93b0;
+      --accent: #ff7a6b;
+      --accent-dim: #8a3a32;
+      --screen-edge: #27456e;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    h1 span { color: var(--accent); }
+
+    header a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    header a:hover { color: var(--text); }
+
+    #screen {
+      position: relative;
+      aspect-ratio: 2 / 1;
+      background: #000;
+      border: 1px solid var(--screen-edge);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 0 4px var(--panel), 0 0 40px rgba(255, 122, 107, 0.08), 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    #screen.errored { border-color: var(--accent); }
+
+    #screen canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+
+    #screen.dragging { border-color: var(--accent); }
+
+    #placeholder {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--muted);
+      text-align: center;
       padding: 20px;
     }
-    canvas {
-      border: 1px solid #444;
-      margin: 20px 0;
+
+    #placeholder strong { color: var(--text); font-weight: 500; }
+
+    #screen.running #placeholder { display: none; }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    select, button {
-      margin: 5px;
-      padding: 8px 16px;
+
+    .controls .spacer { flex: 1; }
+
+    button, .file-button {
+      appearance: none;
+      border: 1px solid var(--panel-edge);
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 120ms, background 120ms;
+    }
+
+    button:hover, .file-button:hover { border-color: var(--accent); }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+      border-color: var(--panel-edge);
+    }
+
+    .file-button input { display: none; }
+
+    .file-button.primary {
+      background: var(--accent-dim);
+      border-color: var(--accent-dim);
+      color: #fff;
+    }
+
+    #status {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #status b { color: var(--text); font-weight: 500; }
+
+    #status.error { color: var(--accent); white-space: normal; }
+
+    .keypad-panel {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      align-items: start;
+      background: var(--panel);
+      border: 1px solid var(--panel-edge);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, 44px);
+      gap: 6px;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .key {
+      height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--panel-edge);
+      border-radius: 6px;
+      background: var(--bg);
+      cursor: pointer;
+      line-height: 1.1;
+    }
+
+    .key b { font-weight: 600; font-size: 15px; }
+
+    .key small { color: var(--muted); font-size: 10px; }
+
+    .key.down {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+
+    .key.down small { color: #000; }
+
+    .log {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 194px;
+      background: var(--bg);
+      border: 1px solid var(--panel-edge);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--panel-edge);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .log-header .actions { display: flex; gap: 6px; }
+
+    .log-header button {
+      padding: 2px 8px;
+      font-size: 12px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .log-header button.on {
+      background: var(--accent-dim);
+      border-color: var(--accent-dim);
+      color: #fff;
+    }
+
+    .log-lines {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .log-lines div { color: var(--muted); }
+    .log-lines .trace { color: var(--muted); opacity: 0.8; }
+    .log-lines .info { color: var(--text); }
+    .log-lines .error { color: var(--accent); }
+    .log-lines time { opacity: 0.5; margin-right: 8px; }
+
+    @media (max-width: 560px) {
+      .keypad-panel { grid-template-columns: 1fr; }
+      .keypad { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
 <body>
-  <h1>Shrimp CHIP-8 Interpreter</h1>
+  <main>
+    <header>
+      <h1><span>shrimp</span> CHIP-8</h1>
+      <a href="https://github.com/DanielGilchrist/shrimp">github.com/DanielGilchrist/shrimp</a>
+    </header>
 
-  <div>
-    <input type="file" id="rom-file" accept=".ch8">
-    <button id="load-rom">Load ROM</button>
-  </div>
+    <div id="screen">
+      <div id="placeholder">
+        <strong>No ROM loaded</strong>
+        <span>Choose a <code>.ch8</code> file or drop one here</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <label class="file-button primary">
+        Load ROM
+        <input type="file" id="rom-file" accept=".ch8">
+      </label>
+      <button id="pause" disabled>Pause</button>
+      <button id="reset" disabled>Reset</button>
+      <span class="spacer"></span>
+      <span id="status">Waiting for a ROM</span>
+    </div>
+
+    <div class="keypad-panel">
+      <div class="keypad" id="keypad"></div>
+      <div class="log">
+        <div class="log-header">
+          <span>Log</span>
+          <span class="actions">
+            <button id="trace" disabled>Trace</button>
+            <button id="clear-log">Clear</button>
+          </span>
+        </div>
+        <div class="log-lines" id="log"></div>
+      </div>
+    </div>
+  </main>
 
   <script src="main.js"></script>
   <script>
-    function clearCanvasIfExists() {
-      const canvas = document.querySelector("canvas");
-      if (canvas != null) canvas.remove();
+    const LAYOUT = [
+      ["1", "1"], ["2", "2"], ["3", "3"], ["C", "4"],
+      ["4", "q"], ["5", "w"], ["6", "e"], ["D", "r"],
+      ["7", "a"], ["8", "s"], ["9", "d"], ["E", "f"],
+      ["A", "z"], ["0", "x"], ["B", "c"], ["F", "v"],
+    ];
+
+    const FRAME_DURATION_MS = 1000 / 60;
+    const MAX_CATCHUP_MS = FRAME_DURATION_MS * 5;
+
+    const screen = document.getElementById("screen");
+    const status = document.getElementById("status");
+    const pauseButton = document.getElementById("pause");
+    const resetButton = document.getElementById("reset");
+    const fileInput = document.getElementById("rom-file");
+    const keypad = document.getElementById("keypad");
+
+    const logLines = document.getElementById("log");
+    const traceButton = document.getElementById("trace");
+    const MAX_LOG_LINES = 300;
+    const OPCODE_PATTERN = /^0x[0-9A-F]{4}$/;
+    const pendingLines = [];
+    let flushScheduled = false;
+
+    function flushLog() {
+      flushScheduled = false;
+      if (pendingLines.length === 0) return;
+
+      const stickToBottom = logLines.scrollTop + logLines.clientHeight >= logLines.scrollHeight - 4;
+      const fragment = document.createDocumentFragment();
+
+      for (const [message, level, stamp] of pendingLines.splice(-MAX_LOG_LINES)) {
+        const line = document.createElement("div");
+        line.className = level;
+        const time = document.createElement("time");
+        time.textContent = stamp;
+        line.append(time, message);
+        fragment.appendChild(line);
+      }
+
+      pendingLines.length = 0;
+      logLines.appendChild(fragment);
+
+      while (logLines.childElementCount > MAX_LOG_LINES) logLines.firstElementChild.remove();
+      if (stickToBottom) logLines.scrollTop = logLines.scrollHeight;
+    }
+
+    function log(message, level = "") {
+      const text = String(message).trim();
+      if (text === "") return;
+
+      if (OPCODE_PATTERN.test(text)) level = "trace";
+      pendingLines.push([text, level, new Date().toLocaleTimeString([], { hour12: false })]);
+
+      if (!flushScheduled) {
+        flushScheduled = true;
+        requestAnimationFrame(flushLog);
+      }
+    }
+
+    document.getElementById("clear-log").addEventListener("click", () => {
+      pendingLines.length = 0;
+      logLines.replaceChildren();
+    });
+
+    for (const [method, level] of [["log", ""], ["warn", "info"], ["error", "error"]]) {
+      const original = console[method].bind(console);
+      console[method] = (...args) => {
+        original(...args);
+        log(args.map(arg => arg instanceof Error ? arg.message : arg).join(" "), level);
+      };
+    }
+
+    const keyElements = new Map();
+
+    for (const [label, keyboard] of LAYOUT) {
+      const element = document.createElement("div");
+      element.className = "key";
+      element.dataset.key = keyboard;
+      element.innerHTML = `<b>${label}</b><small>${keyboard}</small>`;
+      keypad.appendChild(element);
+      keyElements.set(keyboard, element);
+    }
+
+    function setStatus(html, isError = false) {
+      status.innerHTML = html;
+      status.classList.toggle("error", isError);
+      screen.classList.toggle("errored", isError);
     }
 
     async function base64EncodeFile(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const romData = new Uint8Array(arrayBuffer);
-
-      return btoa(Array.from(romData, byte => String.fromCharCode(byte)).join(""));
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      return btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join(""));
     }
 
     window.init().then(() => {
-      const initInterpreter = init.init_interpreter;
-      const stepInterpreter = init.step_interpreter;
-      const FRAME_DURATION_MS = 1000 / 60;
-      const MAX_CATCHUP_MS = FRAME_DURATION_MS * 5;
       let animationFrameId = null;
+      let lastStep = null;
+      let paused = false;
+      let currentFile = null;
 
-      document.addEventListener("keydown", (event) => {
-        if (!event.repeat) init.key_down(event.key);
-      });
+      function frame(timestamp) {
+        if (lastStep == null || timestamp - lastStep > MAX_CATCHUP_MS) lastStep = timestamp;
 
-      document.addEventListener("keyup", (event) => init.key_up(event.key));
-
-      document.getElementById("load-rom").addEventListener("click", async () => {
-        const fileInput = document.getElementById("rom-file");
-        const file = fileInput.files[0];
-
-        if (file == null) {
-          window.alert("Please select a ROM file first");
+        try {
+          while (timestamp - lastStep >= FRAME_DURATION_MS) {
+            init.step_interpreter();
+            lastStep += FRAME_DURATION_MS;
+          }
+        } catch (error) {
+          stop();
+          pauseButton.disabled = true;
+          setStatus("Interpreter halted", true);
+          log(`Interpreter halted: ${error.message ?? error}`, "error");
           return;
         }
 
-        const encodedROM = await base64EncodeFile(file);
+        animationFrameId = requestAnimationFrame(frame);
+      }
 
-        clearCanvasIfExists();
+      function stop() {
         if (animationFrameId != null) cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        lastStep = null;
+      }
 
-        if (initInterpreter(encodedROM)) {
-          let lastStep = null;
+      function start() {
+        stop();
+        if (paused) log("Resumed", "info");
+        paused = false;
+        pauseButton.textContent = "Pause";
+        animationFrameId = requestAnimationFrame(frame);
+      }
 
-          function frame(timestamp) {
-            if (lastStep == null || timestamp - lastStep > MAX_CATCHUP_MS) lastStep = timestamp;
+      function adoptCanvas() {
+        const canvas = document.querySelector("body > canvas");
+        if (canvas == null) return;
 
-            while (timestamp - lastStep >= FRAME_DURATION_MS) {
-              stepInterpreter();
-              lastStep += FRAME_DURATION_MS;
-            }
+        screen.querySelector("canvas")?.remove();
+        canvas.removeAttribute("style");
+        screen.appendChild(canvas);
+      }
 
-            animationFrameId = requestAnimationFrame(frame);
-          }
-          animationFrameId = requestAnimationFrame(frame);
+      async function load(file) {
+        if (file == null) return;
+
+        currentFile = file;
+        const encoded = await base64EncodeFile(file);
+
+        stop();
+
+        if (!init.init_interpreter(encoded)) {
+          setStatus(`Failed to load <b>${file.name}</b>`, true);
+          log(`Failed to load ${file.name}`, "error");
+          return;
         }
+
+        log(`Loaded ${file.name} (${file.size} bytes)`, "info");
+
+        adoptCanvas();
+        screen.classList.add("running");
+        pauseButton.disabled = false;
+        resetButton.disabled = false;
+        setStatus(`<b>${file.name}</b> · ${file.size} bytes`);
+        start();
+      }
+
+      function togglePause() {
+        if (currentFile == null) return;
+
+        if (paused) {
+          start();
+        } else {
+          stop();
+          paused = true;
+          pauseButton.textContent = "Resume";
+          log("Paused", "info");
+        }
+      }
+
+      function pressKey(keyboard) {
+        keyElements.get(keyboard)?.classList.add("down");
+        init.key_down(keyboard);
+      }
+
+      function releaseKey(keyboard) {
+        keyElements.get(keyboard)?.classList.remove("down");
+        init.key_up(keyboard);
+      }
+
+      let tracing = false;
+
+      traceButton.disabled = false;
+      traceButton.addEventListener("click", () => {
+        tracing = !tracing;
+        traceButton.classList.toggle("on", tracing);
+        init.set_trace(tracing);
+        log(tracing ? "Trace on" : "Trace off", "info");
       });
-    }).catch(console.error);
+
+      fileInput.addEventListener("change", () => load(fileInput.files[0]));
+      pauseButton.addEventListener("click", togglePause);
+      resetButton.addEventListener("click", () => load(currentFile));
+
+      document.addEventListener("keydown", (event) => {
+        if (event.target === fileInput) return;
+
+        if (event.key === " ") {
+          event.preventDefault();
+          togglePause();
+          return;
+        }
+
+        if (!event.repeat) pressKey(event.key.toLowerCase());
+      });
+
+      document.addEventListener("keyup", (event) => releaseKey(event.key.toLowerCase()));
+
+      keypad.addEventListener("pointerdown", (event) => {
+        const key = event.target.closest(".key")?.dataset.key;
+        if (key == null) return;
+
+        event.target.setPointerCapture?.(event.pointerId);
+        pressKey(key);
+
+        const release = () => releaseKey(key);
+        event.target.addEventListener("pointerup", release, { once: true });
+        event.target.addEventListener("pointercancel", release, { once: true });
+      });
+
+      screen.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        screen.classList.add("dragging");
+      });
+
+      screen.addEventListener("dragleave", () => screen.classList.remove("dragging"));
+
+      screen.addEventListener("drop", (event) => {
+        event.preventDefault();
+        screen.classList.remove("dragging");
+        load(event.dataTransfer.files[0]);
+      });
+      log("Interpreter ready", "info");
+    }).catch((error) => {
+      console.error(error);
+      setStatus("Failed to initialise the interpreter", true);
+    });
   </script>
 </body>
 </html>

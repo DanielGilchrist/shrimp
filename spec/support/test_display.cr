@@ -1,5 +1,10 @@
 class TestDisplay < Shrimp::Display
   getter render_count : Int32 = 0
+  getter logs = [] of String
+
+  def log(message : String) : Nil
+    @logs << message
+  end
 
   def render : Nil
     @render_count += 1

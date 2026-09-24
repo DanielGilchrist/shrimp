@@ -29,6 +29,7 @@ module Shrimp
 
     keypad = Keypad.new
     interpreter = Interpreter.new(display, keypad)
+    interpreter.trace = cli.trace?
     rom_bytes = File.read(cli.rom, encoding: nil).to_slice
     interpreter.load_rom(rom_bytes)
 

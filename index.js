@@ -1,4 +1,4 @@
-const wasmSource = "main.wasm";
+const wasmSource = nil;
 const isDenoRuntime = !!globalThis.Deno;
 const isNodeRuntime = !!globalThis.process;
 
@@ -46,6 +46,10 @@ async function init() {
 
   const imports = {
     env: {
+      _js1(arg1) { // JS::Reference#finalize 
+ 
+  drop_ref(arg1);
+ },
       _js3(arg1) { // JSExportHelpers.__export_0_get_arg_0 
  return __helper_1((() => { 
   return __heap[arg1][0];

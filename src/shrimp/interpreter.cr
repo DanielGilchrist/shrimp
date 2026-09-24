@@ -32,6 +32,8 @@ module Shrimp
 
     alias Instruction = Proc(Opcode, Nil)
 
+    property? trace : Bool = false
+
     @table : Array(Instruction)
     @table0 : Array(Instruction)
     @table8 : Array(Instruction)
@@ -153,20 +155,9 @@ module Shrimp
     end
 
     private def execute(opcode : Opcode) : Nil
-      idx = opcode.instruction_type
+      @display.log(opcode.to_s) if trace?
 
-      {% if flag?(:trace) %}
-        @display.log(opcode.to_s)
-        instruction = @table[idx]?
-
-        if instruction
-          instruction.call(opcode)
-        else
-          unimplemented.call(opcode)
-        end
-      {% else %}
-        @table[idx].call(opcode)
-      {% end %}
+      @table[opcode.instruction_type].call(opcode)
     end
 
     private def no_op : Instruction

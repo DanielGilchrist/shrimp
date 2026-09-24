@@ -86,6 +86,27 @@ describe Shrimp::Interpreter do
     end
   end
 
+  describe "#trace" do
+    it "logs each executed opcode to the display when enabled" do
+      display = TestDisplay.new
+      interpreter = interpreter_for([0x6005_u16, 0x00E0_u16], display)
+      interpreter.trace = true
+
+      2.times { interpreter.cycle }
+
+      display.logs.should eq(["0x6005", "0x00E0"])
+    end
+
+    it "logs nothing by default" do
+      display = TestDisplay.new
+      interpreter = interpreter_for([0x6005_u16], display)
+
+      interpreter.cycle
+
+      display.logs.should be_empty
+    end
+  end
+
   describe "#step" do
     it "renders once per frame" do
       display = TestDisplay.new
