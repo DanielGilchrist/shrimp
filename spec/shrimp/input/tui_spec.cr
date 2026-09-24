@@ -15,12 +15,32 @@ describe Shrimp::Input::TUI do
       tui_input_for("").poll(Shrimp::Keypad.new).should be_true
     end
 
-    it "continues on unrelated bytes" do
-      tui_input_for("abc").poll(Shrimp::Keypad.new).should be_true
+    it "continues on unmapped bytes" do
+      keypad = Shrimp::Keypad.new
+
+      tui_input_for("p").poll(keypad).should be_true
+
+      Shrimp::Key.each { |key| keypad.pressed?(key).should be_false }
     end
 
-    it "quits on q" do
-      tui_input_for("q").poll(Shrimp::Keypad.new).should be_false
+    it "presses the mapped key" do
+      keypad = Shrimp::Keypad.new
+
+      tui_input_for("w").poll(keypad).should be_true
+
+      keypad.pressed?(Shrimp::Key::Five).should be_true
+    end
+
+    it "holds the key until the hold period expires" do
+      keypad = Shrimp::Keypad.new
+      input = tui_input_for("w")
+
+      input.poll(keypad)
+      (Shrimp::Input::TUI::HOLD_FRAMES - 2).times { input.poll(keypad) }
+      keypad.pressed?(Shrimp::Key::Five).should be_true
+
+      input.poll(keypad)
+      keypad.pressed?(Shrimp::Key::Five).should be_false
     end
 
     it "quits on ctrl-c" do
