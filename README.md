@@ -4,8 +4,11 @@ Name unrelated, just having fun building a CHIP-8 interpreter
 ### Native using SDL
 <img width="823" alt="image" src="https://github.com/user-attachments/assets/9e94e8a8-9a68-42ea-8a4b-0b66185dfc3c" />
 
+### Native in the terminal
+<img width="553" height="381" alt="image" src="https://github.com/user-attachments/assets/f8c9ebaa-8d65-4838-9215-a176fa7a0085" />
+
 ### WASM in the browser
-<img width="906" alt="image" src="https://github.com/user-attachments/assets/a8b1dc34-82ea-4962-b315-78048762e475" />
+<img width="876" height="813" alt="image" src="https://github.com/user-attachments/assets/7da37853-5d88-437d-8a03-2166e322d4ec" />
 
 ### Running locally
 1. [Install SDL2](https://wiki.libsdl.org/SDL2/Installation)
@@ -13,7 +16,7 @@ Name unrelated, just having fun building a CHIP-8 interpreter
 3. `crystal run src/shrimp_sdl.cr --release -- --rom="/path/to/rom"`
 
 #### Terminal
-The display can also be rendered in the terminal. Press `q` or `Ctrl-C` to quit.
+The display can also be rendered in the terminal.
 1. `shards install`
 2. `crystal run src/shrimp_tui.cr --release -- --rom="/path/to/rom"`
 
