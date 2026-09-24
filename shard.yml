@@ -5,8 +5,10 @@ authors:
   - Daniel Gilchrist <danniieelg@gmail.com>
 
 targets:
-  shrimp:
-    main: src/main.cr
+  shrimp-sdl:
+    main: src/shrimp_sdl.cr
+  shrimp-tui:
+    main: src/shrimp_tui.cr
 
 dependencies:
   kebab:
