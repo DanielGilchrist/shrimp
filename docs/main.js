@@ -58,47 +58,63 @@ async function init() {
  
   __heap[arg1] = null;
  },
-      _js59() { // Web.get_window 
+      _js6(arg1) { // JSExportHelpers.__export_2_get_arg_0 
+ return __helper_1((() => { 
+  return __heap[arg1][0];
+ })()); },
+      _js7(arg1) { // JSExportHelpers.__export_2_set_result 
+ 
+  __heap[arg1] = null;
+ },
+      _js8(arg1) { // JSExportHelpers.__export_3_get_arg_0 
+ return __helper_1((() => { 
+  return __heap[arg1][0];
+ })()); },
+      _js9(arg1) { // JSExportHelpers.__export_3_set_result 
+ 
+  __heap[arg1] = null;
+ },
+      _js63() { // Web.get_window 
  return __make_ref((() => { 
   return window;
  })()); },
-      _js62(arg1, arg2) { // Web::Node#append_child 
+      _js66(arg1, arg2) { // Web::Node#append_child 
  
   return __heap[arg1].appendChild(__heap[arg2]);
  },
-      _js70(arg1, arg2, arg3) { // Web::CanvasContext#internal_setter_fill_style 
+      _js74(arg1, arg2, arg3) { // Web::CanvasContext#internal_setter_fill_style 
  
   __heap[arg1].fillStyle = __helper_3(arg2, arg3);
  },
-      _js71(arg1, arg2, arg3, arg4, arg5) { // Web::CanvasContext#fill_rect 
+      _js75(arg1, arg2, arg3, arg4, arg5) { // Web::CanvasContext#fill_rect 
  
   return __heap[arg1].fillRect(arg2, arg3, arg4, arg5);
  },
-      _js73(arg1, arg2, arg3) { // Web::HTMLCanvasElement#get_context 
+      _js77(arg1, arg2, arg3) { // Web::HTMLCanvasElement#get_context 
  return __make_ref((() => { 
   return __heap[arg1].getContext(__helper_3(arg2, arg3));
  })()); },
-      _js76(arg1, arg2) { // Web::HTMLCanvasElement#internal_setter_width 
+      _js80(arg1, arg2) { // Web::HTMLCanvasElement#internal_setter_width 
  
   __heap[arg1].width = arg2;
  },
-      _js77(arg1, arg2) { // Web::HTMLCanvasElement#internal_setter_height 
+      _js81(arg1, arg2) { // Web::HTMLCanvasElement#internal_setter_height 
  
   __heap[arg1].height = arg2;
  },
-      _js78(arg1, arg2, arg3, arg5, arg6) { // Web::HTMLCanvasElement#set_attribute 
+      _js82(arg1, arg2, arg3, arg5, arg6) { // Web::HTMLCanvasElement#set_attribute 
  
   return __heap[arg1].setAttribute(__helper_3(arg2, arg3), __helper_3(arg5, arg6));
  },
-      _js80(arg1, arg2, arg3) { // Web::HTMLDocument#create_element 
+      _js84(arg1, arg2, arg3) { // Web::HTMLDocument#create_element 
  return __make_ref((() => { 
   return __heap[arg1].createElement(__helper_3(arg2, arg3));
  })()); },
-      _js81(arg1) { // Web::HTMLDocument#body 
+      _js85(arg1) { // Web::HTMLDocument#body 
  return __make_ref((() => { 
   return __heap[arg1].body;
  })()); },
-      _js84(arg1) { // Web::Window#document 
+      _js88(arg1) { // Web::Window#document 
  return __make_ref((() => { 
   return __heap[arg1].document;
  })()); },
@@ -239,6 +255,22 @@ init.init_interpreter = (...args) => {
 init.step_interpreter = (...args) => {
   const slot = __make_ref(args);
   __exports.__export_1(slot);
+  const result = __heap[slot];
+  __drop_ref(slot);
+  return result;
+};
+
+init.key_down = (...args) => {
+  const slot = __make_ref(args);
+  __exports.__export_2(slot);
+  const result = __heap[slot];
+  __drop_ref(slot);
+  return result;
+};
+
+init.key_up = (...args) => {
+  const slot = __make_ref(args);
+  __exports.__export_3(slot);
   const result = __heap[slot];
   __drop_ref(slot);
   return result;

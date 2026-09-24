@@ -51,6 +51,12 @@
       const MAX_CATCHUP_MS = FRAME_DURATION_MS * 5;
       let animationFrameId = null;
 
+      document.addEventListener("keydown", (event) => {
+        if (!event.repeat) init.key_down(event.key);
+      });
+
+      document.addEventListener("keyup", (event) => init.key_up(event.key));
+
       document.getElementById("load-rom").addEventListener("click", async () => {
         const fileInput = document.getElementById("rom-file");
         const file = fileInput.files[0];
