@@ -1,3 +1,5 @@
+require "./key"
+require "./keypad"
 require "./opcode"
 
 module Shrimp
@@ -6,7 +8,7 @@ module Shrimp
     MEMORY_SIZE       =      4096
     REGISTER_CAP      =    255_u8 # 8 bits
 
-    CYCLES_PER_FRAME = 10
+    CYCLES_PER_FRAME = 20
 
     FONTSET = Bytes[
       0xF0, 0x90, 0x90, 0x90, 0xF0, # 0
@@ -36,7 +38,7 @@ module Shrimp
     @table_e : Array(Instruction)
     @table_f : Array(Instruction)
 
-    def initialize(@display : Display) : Nil
+    def initialize(@display : Display, @keypad : Keypad) : Nil
       @memory = Bytes.new(MEMORY_SIZE, 0)
       @registers = Bytes.new(16, 0)
       @index = 0_u16
@@ -45,7 +47,6 @@ module Shrimp
       @sp = 0_u8
       @delay_timer = 0_u8
       @sound_timer = 0_u8
-      @keypad = Bytes.new(16, 0)
 
       @table0, @table8, @table_e = Array.new(3) { Array.new(0xE + 1) { no_op } }
       @table_f = Array.new(0x65 + 1) { no_op }
@@ -63,8 +64,8 @@ module Shrimp
       @table8[0x7] = subtract_vx_from_vy
       @table8[0xE] = shift_left
 
-      @table_e[0x1] = unimplemented(subinstruction: true)
-      @table_e[0xE] = unimplemented(subinstruction: true)
+      @table_e[0x1] = skip_if_key_not_pressed
+      @table_e[0xE] = skip_if_key_pressed
 
       @table_f[0x05] = unimplemented(subinstruction: true)
       @table_f[0x07] = load_register_with_delay_timer
@@ -364,7 +365,7 @@ module Shrimp
       end
     end
 
-    # 0x8XY6: SH: Vx, Vy
+    # 0x8XY6: SH Vx, Vy
     private def shift_left : Instruction
       Instruction.new do |opcode|
         vx = opcode.vx
@@ -373,6 +374,26 @@ module Shrimp
         vy_value = @registers[vy]
         @registers[0xF] = vy_value | 0x1
         @registers[vx] = vy_value << 0x1
+      end
+    end
+
+    # 0xEX9E: SKP Vx
+    private def skip_if_key_pressed : Instruction
+      Instruction.new do |opcode|
+        raw_key = @registers[opcode.vx]
+        key = Key.from_value(raw_key)
+
+        @pc += 2 if @keypad.pressed?(key)
+      end
+    end
+
+    # 0xEXA1: SKNP Vx
+    private def skip_if_key_not_pressed : Instruction
+      Instruction.new do |opcode|
+        raw_key = @registers[opcode.vx]
+        key = Key.from_value(raw_key)
+
+        @pc += 2 if @keypad.not_pressed?(key)
       end
     end
 

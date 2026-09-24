@@ -1,7 +1,6 @@
 module Shrimp
   abstract class Display
     abstract def render : Nil
-    abstract def poll_events : Bool
     abstract def width : Int32
     abstract def height : Int32
 

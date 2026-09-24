@@ -21,10 +21,6 @@ module Shrimp
         super
       end
 
-      def poll_events : Bool
-        true
-      end
-
       def render : Nil
         @ctx.fill_style = "black"
         @ctx.fill_rect(0, 0, @width * @scale, @height * @scale)

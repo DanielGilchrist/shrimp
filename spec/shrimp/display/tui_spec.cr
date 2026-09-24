@@ -1,9 +1,9 @@
 require "../../spec_helper"
 require "../../../src/shrimp/display/tui"
 
-private def tui_for(input : String = "", size : Shrimp::Terminal::Size? = nil) : {Shrimp::Display::TUI, IO::Memory}
+private def tui_for(size : Shrimp::Terminal::Size? = nil) : {Shrimp::Display::TUI, IO::Memory}
   output = IO::Memory.new
-  tui = Shrimp::Display::TUI.new(IO::Memory.new(input), output, size)
+  tui = Shrimp::Display::TUI.new(Shrimp::Terminal.new(IO::Memory.new, output), size)
   output.clear
 
   {tui, output}
@@ -132,38 +132,6 @@ describe Shrimp::Display::TUI do
       tui.render
 
       frame_rows(output).size.should eq(16)
-    end
-  end
-
-  describe "#poll_events" do
-    it "continues when no keys were pressed" do
-      tui, _ = tui_for
-      Fiber.yield
-
-      tui.poll_events.should be_true
-    end
-
-    it "continues on unrelated keys" do
-      tui, _ = tui_for("abc")
-      Fiber.yield
-
-      tui.poll_events.should be_true
-    end
-
-    it "continues on arrow key and scroll escape sequences" do
-      tui, _ = tui_for("\e[A\e[B")
-      Fiber.yield
-
-      tui.poll_events.should be_true
-    end
-
-    {"q" => "q", "" => "ctrl-c"}.each do |key, name|
-      it "quits on #{name}" do
-        tui, _ = tui_for(key)
-        Fiber.yield
-
-        tui.poll_events.should be_false
-      end
     end
   end
 end

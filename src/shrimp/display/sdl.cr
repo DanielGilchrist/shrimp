@@ -3,12 +3,6 @@ require "../display"
 module Shrimp
   class Display
     class SDL < Display
-      @window : ::SDL::Window
-      @renderer : ::SDL::Renderer
-      @texture : ::SDL::Texture
-      @buffer : Array(Array(UInt8))
-      @pixels_data : Array(UInt32)
-
       def initialize(@width : Int32 = 64, @height : Int32 = 32, @scale : Int32 = 10) : Nil
         ::SDL.init(::SDL::Init::VIDEO)
 
@@ -54,19 +48,6 @@ module Shrimp
         )
 
         @renderer.present
-      end
-
-      def poll_events : Bool
-        while event = ::SDL::Event.poll
-          case event
-          when ::SDL::Event::Quit
-            return false
-          when ::SDL::Event::Keyboard
-            return false if event.sym.escape?
-          end
-        end
-
-        true
       end
 
       def finalize : Nil

@@ -1,6 +1,7 @@
 require "base64"
 require "./web_bindings"
 require "./shrimp/interpreter"
+require "./shrimp/keypad"
 require "./shrimp/display/canvas"
 
 module GlobalState
@@ -11,7 +12,7 @@ module GlobalState
   end
 
   def self.load_rom(rom_data : String) : Nil
-    interpreter = Shrimp::Interpreter.new(Shrimp::Display::Canvas.new)
+    interpreter = Shrimp::Interpreter.new(Shrimp::Display::Canvas.new, Shrimp::Keypad.new)
     interpreter.load_rom(Base64.decode(rom_data))
 
     @@interpreter = interpreter

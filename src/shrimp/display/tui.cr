@@ -12,31 +12,21 @@ module Shrimp
 
       LOG_LINES = 8
 
-      KEY_CTRL_C = 0x03_u8
-      KEY_QUIT   = 'q'.ord.to_u8
-
       getter required_size : Terminal::Size
 
-      @keys : Channel(UInt8)
-      @log : Deque(String)
-      @terminal_size : Terminal::Size?
-
       def initialize(
-        @input : IO = STDIN,
-        @output : IO = STDOUT,
-        @terminal_size : Terminal::Size? = Terminal.size(STDOUT),
+        @terminal : Terminal = Terminal.stdio,
+        terminal_size : Terminal::Size? = nil,
         @width : Int32 = 64,
         @height : Int32 = 32,
         @scale : Int32 = 1,
       ) : Nil
-        @keys = Channel(UInt8).new(64)
         @log = Deque(String).new(LOG_LINES)
         @required_size = Terminal::Size.new(@width, @height // 2)
+        @terminal_size = terminal_size || @terminal.size
 
-        Terminal.enter(@input, @output)
-        at_exit { Terminal.leave(@input, @output) }
-        watch_for_resize
-        spawn { read_keys }
+        @terminal.open
+        @terminal.on_resize { |size| resize(size) }
 
         super(@width, @height, @scale)
       end
@@ -52,19 +42,8 @@ module Shrimp
           end
         end
 
-        @output.print frame
-        @output.flush
-      end
-
-      def poll_events : Bool
-        loop do
-          select
-          when key = @keys.receive
-            return false if quit_key?(key)
-          else
-            return true
-          end
-        end
+        @terminal.output.print frame
+        @terminal.output.flush
       end
 
       def log(message : String) : Nil
@@ -74,14 +53,8 @@ module Shrimp
       end
 
       def resize(@terminal_size : Terminal::Size?) : Nil
-        @output.print CLEAR_SCREEN
+        @terminal.output.print CLEAR_SCREEN
         mark_dirty
-      end
-
-      private def watch_for_resize : Nil
-        return unless Terminal.tty?(@output)
-
-        Signal::WINCH.trap { resize(Terminal.size(@output)) }
       end
 
       private def pixel_lines : Array(String)
@@ -111,16 +84,6 @@ module Shrimp
 
       private def render_too_small(io : IO, size : Terminal::Size) : Nil
         io << CLEAR_LINE << "Terminal is " << size << ", at least " << @required_size << " is required"
-      end
-
-      private def quit_key?(key : UInt8) : Bool
-        key.in?(KEY_CTRL_C, KEY_QUIT)
-      end
-
-      private def read_keys : Nil
-        while byte = @input.read_byte
-          @keys.send(byte)
-        end
       end
     end
   end

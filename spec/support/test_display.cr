@@ -5,10 +5,6 @@ class TestDisplay < Shrimp::Display
     @render_count += 1
   end
 
-  def poll_events : Bool
-    true
-  end
-
   def lit_pixels : Array({Int32, Int32})
     coordinates = [] of {Int32, Int32}
 

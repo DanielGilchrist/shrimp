@@ -1,5 +1,5 @@
 module Shrimp
-  module Terminal
+  class Terminal
     record Size, columns : Int32, rows : Int32 do
       def fits?(other : Size) : Bool
         columns >= other.columns && rows >= other.rows

@@ -13,8 +13,8 @@ def rom_for(opcodes : Enumerable(UInt16)) : Bytes
   bytes
 end
 
-def interpreter_for(opcodes : Enumerable(UInt16), display : Shrimp::Display) : Shrimp::Interpreter
-  interpreter = Shrimp::Interpreter.new(display)
+def interpreter_for(opcodes : Enumerable(UInt16), display : Shrimp::Display, keypad : Shrimp::Keypad = Shrimp::Keypad.new) : Shrimp::Interpreter
+  interpreter = Shrimp::Interpreter.new(display, keypad)
   interpreter.load_rom(rom_for(opcodes))
 
   interpreter
